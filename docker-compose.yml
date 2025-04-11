@@ -1,0 +1,27 @@
+services:
+  api-gateway:
+    build: ./api-gateway
+    ports:
+      - "3000:3000"
+    environment:
+      - ORDER_SERVICE_URL=http://order-service:3001
+      - RESTAURANT_SERVICE_URL=http://restaurant-service:3002
+    depends_on:
+      - order-service
+      - restaurant-service
+
+  order-service:
+    build: ./order-service
+    ports:
+      - "3001:3001"
+    environment:
+      - MONGO_URI=mongodb+srv://tharindunsandeepa:PgjEdF4EGp3OFMsi@clusteraf.sezfa.mongodb.net/food-delivery?retryWrites=true&w=majority
+      - PORT=3001
+
+  restaurant-service:
+    build: ./restaurant-service
+    ports:
+      - "3002:3002"
+    environment:
+      - MONGO_URI=mongodb+srv://tharindunsandeepa:PgjEdF4EGp3OFMsi@clusteraf.sezfa.mongodb.net/food-delivery?retryWrites=true&w=majority
+      - PORT=3002
