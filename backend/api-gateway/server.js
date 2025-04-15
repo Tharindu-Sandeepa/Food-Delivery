@@ -28,6 +28,10 @@ app.get('/api/restaurants', async (req, res) => {
   }
 });
 
+app.get('/test', async (req, res) => {
+  res.status(200).json({ message: 'API Gateway is working!' });
+});
+
 app.listen(PORT, () => {
   console.log(`API Gateway running on port ${PORT}`);
 });
