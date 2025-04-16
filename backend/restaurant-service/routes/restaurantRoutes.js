@@ -1,19 +1,26 @@
 const express = require('express');
 const router = express.Router();
 const restaurantController = require('../controllers/restaurantController');
-
-// Restaurant Routes
-router.post('/', restaurantController.addRestaurant);           // POST /restaurants
-router.get('/', restaurantController.getRestaurants);           // GET /restaurants
-router.get('/:id', restaurantController.getRestaurantById);     // GET /restaurants/:id
-router.put('/:id', restaurantController.updateRestaurant);      // PUT /restaurants/:id
-router.delete('/:id', restaurantController.deleteRestaurant);   // DELETE /restaurants/:id
+const multer = require('multer');
+const upload = multer({ dest: 'uploads/' });
 
 // MenuItem Routes
-router.post('/menu', restaurantController.addMenuItem);         // POST /restaurants/menu
-router.get('/menu', restaurantController.getMenuItems);         // GET /restaurants/menu?restaurantId=...
-router.get('/menu/:id', restaurantController.getMenuItemById);  // GET /restaurants/menu/:id
-router.put('/menu/:id', restaurantController.updateMenuItem);   // PUT /restaurants/menu/:id
-router.delete('/menu/:id', restaurantController.deleteMenuItem); // DELETE /restaurants/menu/:id
+router.post('/menu', upload.single('image'), restaurantController.addMenuItem);
+router.get('/menu', restaurantController.getMenuItems);
+router.get('/menu/:id', restaurantController.getMenuItemById);
+router.put('/menu/:id', upload.single('image'), restaurantController.updateMenuItem);
+router.delete('/menu/:id', restaurantController.deleteMenuItem);
+
+// Restaurant Routes
+router.post('/', restaurantController.addRestaurant);
+router.get('/', restaurantController.getRestaurants);
+router.get('/nearby', restaurantController.getNearbyRestaurants);
+router.get('/:id', restaurantController.getRestaurantById);
+router.put('/:id', restaurantController.updateRestaurant);
+router.delete('/:id', restaurantController.deleteRestaurant);
+
+// Review Routes
+router.post('/:restaurantId/reviews', restaurantController.addReview);
+router.get('/:restaurantId/reviews', restaurantController.getRestaurantReviews);
 
 module.exports = router;
