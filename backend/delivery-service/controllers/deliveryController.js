@@ -32,6 +32,8 @@ exports.updateStatus = async (req, res) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
+
+    console.log("Updating delivery status:", id, status);
     const delivery = await Delivery.findOneAndUpdate(
       { deliveryId: id },
       { status, updatedAt: new Date() },
@@ -88,7 +90,8 @@ exports.getDeliveryByOrderId = async (req, res) => {
 exports.getDeliveryByDriverId = async (req, res) => {
   try {
     const { id } = req.params;
-    const delivery = await Delivery.findOne({ driverId: id });
+    console.log("Driver ID:", id); 
+    const delivery = await Delivery.find({ driverId: id });
     if (!delivery)
       return res.status(404).json({ message: "Delivery not found" });
     res.status(200).json(delivery);
