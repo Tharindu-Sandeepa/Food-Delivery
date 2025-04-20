@@ -1,14 +1,15 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const orderRoutes = require('./routes/orderRoutes');
-const app = express();
-const PORT = process.env.PORT || 3001;
-const dotenv = require('dotenv');
+const dotenv = require("dotenv");
 dotenv.config();
+const cors = require("cors");
+const app = express();
+const PORT = process.env.PORT || 3005;
+const authRoutes = require("./routes/authRoutes");
 
 app.use(express.json());
-const cors = require("cors");
 app.use(cors());
+app.use("/api/v1/auth", authRoutes);
 
 // MongoDB Connection
 const mongoUri = process.env.MONGO_URI;
@@ -16,8 +17,7 @@ mongoose.connect(mongoUri)
   .then(() => console.log('Connected to MongoDB'))
   .catch(err => console.error('MongoDB connection error:', err));
 
-app.use('/api/orders', orderRoutes);
 
 app.listen(PORT, () => {
-  console.log(`Order Service running on port ${PORT}`);
+  console.log(`Auth Service running on port ${PORT}`);
 });

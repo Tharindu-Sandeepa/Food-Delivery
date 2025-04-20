@@ -1,21 +1,51 @@
 const Order = require('../models/Order');
 
+// Create new order
 exports.createOrder = async (req, res) => {
   try {
-    const order = new Order(req.body);
-    await order.save();
+    const order = await Order.create(req.body);
     res.status(201).json(order);
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to create order' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 };
 
-exports.getOrder = async (req, res) => {
+// Get order by ID
+exports.getOrderById = async (req, res) => {
   try {
-    const order = await Order.findById(req.params.id);
-    if (!order) return res.status(404).json({ error: 'Order not found' });
+    const { id } = req.params;
+    console.log(id);
+    const order = await Order.findOne({ orderId: id });
+    if (!order) return res.status(404).json({ message: "Order not found" });
     res.json(order);
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch order' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// Get all orders (optional)
+exports.getAllOrders = async (req, res) => {
+  try {
+    const orders = await Order.find();
+    res.json(orders);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// Update order status
+exports.updateOrderStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+    const order = await Order.findOneAndUpdate(
+      { orderId: id },
+      { status },
+      { new: true }
+    );
+    if (!order) return res.status(404).json({ message: "Order not found" });
+    res.json(order);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 };
