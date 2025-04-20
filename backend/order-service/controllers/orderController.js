@@ -1,4 +1,6 @@
 const Order = require('../models/Order');
+const axios = require('axios');
+const mongoose = require('mongoose');
 
 // Create new order
 exports.createOrder = async (req, res) => {
@@ -16,6 +18,19 @@ exports.getOrderById = async (req, res) => {
     const { id } = req.params;
     console.log(id);
     const order = await Order.findOne({ orderId: id });
+    if (!order) return res.status(404).json({ message: "Order not found" });
+    res.json(order);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// Get order by Restaurant Id ID
+exports.getOrderByRestaurantId = async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log(id);
+    const order = await Order.find({ restaurantId: id });
     if (!order) return res.status(404).json({ message: "Order not found" });
     res.json(order);
   } catch (err) {
@@ -47,5 +62,89 @@ exports.updateOrderStatus = async (req, res) => {
     res.json(order);
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+};
+
+exports.updateOrderStatusByDeliveryId = async (req, res) => {
+  try {
+
+    const { deliveryId } = req.body;
+    const { status } = req.body;
+
+    console.log("Updating order status for deliveryId:", deliveryId, "to status:", status);
+    const order = await Order.findOneAndUpdate(
+      { deliveryId },
+      { status },
+      { new: true }
+    );
+    if (!order) return res.status(404).json({ message: "Order not found" });
+    res.json(order);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+
+exports.markOrderReady = async (req, res) => {
+
+  try {
+    const { orderId } = req.params;
+
+    if (!orderId) {
+      return res.status(400).json({ error: "Order ID is required" });
+    }
+
+    const order = await Order.findOneAndUpdate(
+      { orderId },
+      { status: 'ready' },
+    );
+
+    if (!order) {
+      return res.status(404).json({ error: "Order not found" });
+    }
+
+    console.log("Order marked as ready:", order);
+
+    try {
+      // Directly notify the Delivery Service
+      await axios.post('http://localhost:3003/api/deliveries/assign', {
+        orderId: order.orderId,
+        restaurantId: order.restaurantId,
+        deliveryAddress: order.deliveryAddress,
+        startLocation: order.restaurantLocation
+      });
+    } catch (axiosError) {
+      console.error("Error notifying Delivery Service:", axiosError.message);
+      return res.status(500).json({ error: "Failed to notify Delivery Service" });
+    }
+    res.json(order);
+  } catch (error) {
+    console.error("Error marking order as ready:", error.message);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// routes/orders.js or controllers/orderController.js
+exports.receiveDriverAssignment = async (req, res) => {
+  try {
+    const { orderId, deliveryId, driverId, driverName } = req.body;
+
+    const result = await Order.updateOne(
+      { orderId },
+      {
+        status: 'assigned',
+        deliveryPersonId: driverId,
+        deliveryId: deliveryId,
+        deliveryPersonName: driverName
+      }
+    );
+
+    if (result.nModified === 0) {
+      return res.status(404).json({ error: "Order not found or already updated" });
+    }
+
+    res.json({ message: "Driver assignment received and order updated" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 };
