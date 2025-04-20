@@ -1,6 +1,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const deliveryRoutes = require("./routes/deliveryRoutes");
+const driverRoutes = require('./routes/driverRoutes');
 const http = require("http");
 const { Server } = require("socket.io");
 
@@ -22,6 +23,7 @@ app.use(express.json());
 
 // Routes
 app.use("/api/deliveries", deliveryRoutes);
+app.use('/api/drivers', driverRoutes);
 
 // WebSocket logic
 io.on("connection", (socket) => {
