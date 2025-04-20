@@ -140,7 +140,7 @@ const addMenuItem = async (req, res) => {
 const getMenuItems = async (req, res) => {
   try {
     const { restaurantId, category, vegetarian, vegan } = req.query;
-    const filter = { restaurantId, isAvailable: true };
+    const filter = { restaurantId};
     
     if (category) filter.category = category;
     if (vegetarian === 'true') filter.isVegetarian = true;
