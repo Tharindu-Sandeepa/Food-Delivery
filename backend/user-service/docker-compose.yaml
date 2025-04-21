@@ -1,0 +1,43 @@
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 30s
+      retries: 3
+
+  user-service:
+    build: .
+    container_name: user-services
+    ports:
+      - "3000:3000"
+    environment:
+      - MONGO_URI=mongodb+srv://ridmasathsara47:k9FqVJ9AA5zbn4bb@dsfood.wnxsjnt.mongodb.net/?retryWrites=true&w=majority&appName=dsfood
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRES_IN=${JWT_EXPIRES_IN}
+      - PORT=${PORT}
+      - NODE_ENV=${NODE_ENV}
+      
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    volumes:
+      - ./logs:/app/logs
+      - ./src:/app/src
+    restart: unless-stopped
+
+    stdin_open: true
+    tty: true
+    
+
+volumes:
+  mongodb_data:
