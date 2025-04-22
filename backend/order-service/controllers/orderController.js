@@ -112,6 +112,7 @@ exports.markOrderReady = async (req, res) => {
       // Directly notify the Delivery Service
       const deliveryResponse = await axios.post('http://localhost:3003/api/deliveries/assign', {
         orderId: order.orderId,
+        deliveryFee: order.deliveryFee,
         restaurantId: order.restaurantId,
         deliveryAddress: order.deliveryAddress,
         startLocation: order.restaurantLocation

@@ -36,7 +36,7 @@ const axios = require("axios");
 exports.assignDriver = async (req, res) => {
   try {
     
-      const { orderId, restaurantId, deliveryAddress, startLocation } = req.body;
+      const { orderId, restaurantId, deliveryAddress, startLocation, deliveryFee } = req.body;
 
       // Validate required fields
       if (!deliveryAddress || !deliveryAddress.lat || !deliveryAddress.lng) {
@@ -65,6 +65,7 @@ exports.assignDriver = async (req, res) => {
       const delivery = new Delivery({
         deliveryId: `d-${Date.now()}`,
         orderId,
+        deliveryFee,
         driverId: driver.userId,
         driverName: driver.name,
         status: "assigned",
