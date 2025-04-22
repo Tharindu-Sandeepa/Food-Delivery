@@ -5,6 +5,7 @@ const deliverySchema = new mongoose.Schema({
   orderId: { type: String, required: true },
   driverId: { type: String, required: true },
   driverName: { type: String, required: true },
+  deliveryFee: { type: Number, required: true },
   status: {
     type: String,
     enum: ["pending", "assigned", "delivering", "completed", "cancelled"],

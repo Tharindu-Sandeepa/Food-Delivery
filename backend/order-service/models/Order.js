@@ -14,6 +14,8 @@ const orderSchema = new mongoose.Schema({
   restaurantName: { type: String, required: true },
   items: { type: [itemSchema], required: true },
   total: { type: Number, required: true },
+  subTotal: { type: Number, required: true },
+  deliveryFee: { type: Number, required: true },
   deliveryAddress: {
     lat: { type: Number, required: true },
     lng: { type: Number, required: true },
