@@ -3,6 +3,7 @@ const mongoose = require('mongoose')
 const driverSchema = new mongoose.Schema({
   userId: { type: String, required: true, unique: true },
   name: { type: String, required: true },
+  Number: { type: String, required: true },
   location: {
     type: { type: String, default: 'Point' },
     coordinates: { type: [Number] }
