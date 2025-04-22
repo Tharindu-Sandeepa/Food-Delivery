@@ -1,4 +1,4 @@
-const Driver = require('../models/Driver');
+const Driver = require("../models/Driver");
 
 // Create a new driver
 exports.createDriver = async (req, res) => {
@@ -23,8 +23,11 @@ exports.getAllDrivers = async (req, res) => {
 
 // Get a driver by ID
 exports.getDriver = async (req, res) => {
+
+  console.log("Driver ID:", req.params.id); 
+
   try {
-    const driver = await Driver.findById(req.params.id);
+    const driver = await Driver.find({ userId: req.params.id });
     if (!driver) return res.status(404).json({ error: "Driver not found" });
     res.json(driver);
   } catch (error) {
@@ -35,7 +38,9 @@ exports.getDriver = async (req, res) => {
 // Update a driver
 exports.updateDriver = async (req, res) => {
   try {
-    const driver = await Driver.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const driver = await Driver.findByIdAndUpdate({ userId: req.params.id }, req.body, {
+      new: true,
+    });
     if (!driver) return res.status(404).json({ error: "Driver not found" });
     res.json(driver);
   } catch (error) {
@@ -63,10 +68,13 @@ exports.findNearestDriver = async (req, res) => {
       available: true,
       location: {
         $near: {
-          $geometry: { type: "Point", coordinates: [parseFloat(lng), parseFloat(lat)] },
-          $maxDistance: 5000
-        }
-      }
+          $geometry: {
+            type: "Point",
+            coordinates: [parseFloat(lng), parseFloat(lat)],
+          },
+          $maxDistance: 5000,
+        },
+      },
     });
 
     if (!driver) {

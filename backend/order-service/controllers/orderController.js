@@ -31,6 +31,8 @@ exports.getOrderByRestaurantId = async (req, res) => {
     const { id } = req.params;
     console.log(id);
     const order = await Order.find({ restaurantId: id });
+
+    console.log("order", order);
     if (!order) return res.status(404).json({ message: "Order not found" });
     res.json(order);
   } catch (err) {
@@ -86,7 +88,6 @@ exports.updateOrderStatusByDeliveryId = async (req, res) => {
 
 
 exports.markOrderReady = async (req, res) => {
-
   try {
     const { orderId } = req.params;
 
@@ -105,19 +106,24 @@ exports.markOrderReady = async (req, res) => {
 
     console.log("Order marked as ready:", order);
 
+    let response = {};
+
     try {
       // Directly notify the Delivery Service
-      await axios.post('http://localhost:3003/api/deliveries/assign', {
+      const deliveryResponse = await axios.post('http://localhost:3003/api/deliveries/assign', {
         orderId: order.orderId,
         restaurantId: order.restaurantId,
         deliveryAddress: order.deliveryAddress,
         startLocation: order.restaurantLocation
       });
+      console.log("Delivery Service response>>>>:", deliveryResponse.data);
+      response = deliveryResponse.data; // Assign the response data to the outer variable
     } catch (axiosError) {
       console.error("Error notifying Delivery Service:", axiosError.message);
       return res.status(500).json({ error: "Failed to notify Delivery Service" });
     }
-    res.json(order);
+    
+    res.json(response);
   } catch (error) {
     console.error("Error marking order as ready:", error.message);
     res.status(500).json({ error: error.message });
