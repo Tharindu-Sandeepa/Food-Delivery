@@ -10,6 +10,7 @@ const itemSchema = new mongoose.Schema({
 
 const orderSchema = new mongoose.Schema({
   orderId: { type: String, required: true, unique: true },
+  customerId: { type: String, required: true },
   restaurantId: { type: String, required: true },
   restaurantName: { type: String, required: true },
   items: { type: [itemSchema], required: true },

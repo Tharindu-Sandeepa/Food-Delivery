@@ -134,7 +134,7 @@ exports.markOrderReady = async (req, res) => {
 // routes/orders.js or controllers/orderController.js
 exports.receiveDriverAssignment = async (req, res) => {
   try {
-    const { orderId, deliveryId, driverId, driverName } = req.body;
+    const { orderId, deliveryId, driverId, driverName, contactNumber } = req.body;
 
     const result = await Order.updateOne(
       { orderId },
@@ -142,7 +142,8 @@ exports.receiveDriverAssignment = async (req, res) => {
         status: 'assigned',
         deliveryPersonId: driverId,
         deliveryId: deliveryId,
-        deliveryPersonName: driverName
+        deliveryPersonName: driverName,
+        contactNumber: contactNumber
       }
     );
 

@@ -31,15 +31,16 @@ const BASE_URL = "http://localhost:3001/api/orders";
 
 const axios = require("axios");
 
-// controllers/deliveryController.js
-
 exports.assignDriver = async (req, res) => {
   try {
+
+    console.log("delivery assigned start");
     
-      const { orderId, restaurantId, deliveryAddress, startLocation, deliveryFee } = req.body;
+      const { orderId, deliveryAddress, startLocation, deliveryFee } = req.body;
 
       // Validate required fields
-      if (!deliveryAddress || !deliveryAddress.lat || !deliveryAddress.lng) {
+      if (!deliveryAddress || !deliveryAddress.lat || !deliveryAddress.lng || !deliveryFee) {
+        console.log("Invalid delivery address coordinates")
         throw { message: "Invalid delivery address coordinates", statusCode: 400 };
       }
 
@@ -58,6 +59,7 @@ exports.assignDriver = async (req, res) => {
       });
 
       if (!driver) {
+        console.log("No available drivers")
         throw { message: "No available drivers", statusCode: 404 };
       }
 
@@ -65,7 +67,7 @@ exports.assignDriver = async (req, res) => {
       const delivery = new Delivery({
         deliveryId: `d-${Date.now()}`,
         orderId,
-        deliveryFee,
+        deliveryFee: Number(deliveryFee),
         driverId: driver.userId,
         driverName: driver.name,
         status: "assigned",
@@ -95,8 +97,10 @@ exports.assignDriver = async (req, res) => {
           deliveryId: delivery.deliveryId,
           driverId: driver.userId,
           driverName: driver.name,
+          contactNumber: driver.contactNumber,
         });
       } catch (axiosError) {
+        console.log("Failed to notify order service")
         throw { 
           message: `Failed to notify order service: ${axiosError.message}`,
           statusCode: 502
@@ -110,6 +114,7 @@ exports.assignDriver = async (req, res) => {
         });
       }
     } catch (error) {
+      console.log({ message: error.message })
       res.status(500).json({ message: error.message });
     }
 };
