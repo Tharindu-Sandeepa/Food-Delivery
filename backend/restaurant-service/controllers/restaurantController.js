@@ -1,26 +1,27 @@
-const Restaurant = require('../models/Restaurant');
-const MenuItem = require('../models/MenuItem');
-const Review = require('../models/Review');
-const mongoose = require('mongoose');
+const Restaurant = require("../models/Restaurant");
+const MenuItem = require("../models/MenuItem");
+const Review = require("../models/Review");
+const mongoose = require("mongoose");
 
 // CREATE Restaurant
 const addRestaurant = async (req, res) => {
   try {
-    const { name, address, location, cuisineType, openingHours, deliveryZones, imageUrl } = req.body;
-    
+    const { name, address, location, cuisineType, openingHours, deliveryZones } = req.body;
+    const imageUrl = req.file ? `/uploads/${req.file.filename}` : undefined;
+
     const restaurant = new Restaurant({
       name,
       address,
       location: {
-        type: 'Point',
-        coordinates: [location.longitude, location.latitude]
+        type: "Point",
+        coordinates: [parseFloat(location.longitude), parseFloat(location.latitude)],
       },
       cuisineType,
-      openingHours,
-      deliveryZones,
-      imageUrl 
+      openingHours: JSON.parse(openingHours),
+      deliveryZones: deliveryZones.split(",").map((zone) => zone.trim()),
+      imageUrl,
     });
-    
+
     await restaurant.save();
     res.status(201).json(restaurant);
   } catch (error) {
@@ -33,11 +34,11 @@ const getRestaurants = async (req, res) => {
   try {
     const { cuisine, minRating, deliveryZone } = req.query;
     const filter = { isAvailable: true };
-    
+
     if (cuisine) filter.cuisineType = cuisine;
     if (minRating) filter.rating = { $gte: Number(minRating) };
     if (deliveryZone) filter.deliveryZones = deliveryZone;
-    
+
     const restaurants = await Restaurant.find(filter);
     res.json(restaurants);
   } catch (error) {
@@ -48,9 +49,12 @@ const getRestaurants = async (req, res) => {
 // READ Single Restaurant by ID
 const getRestaurantById = async (req, res) => {
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ error: "Invalid restaurant ID format" });
+    }
     const restaurant = await Restaurant.findById(req.params.id);
     if (!restaurant) {
-      return res.status(404).json({ error: 'Restaurant not found' });
+      return res.status(404).json({ error: "Restaurant not found" });
     }
     res.json(restaurant);
   } catch (error) {
@@ -61,21 +65,21 @@ const getRestaurantById = async (req, res) => {
 // READ Nearby Restaurants
 const getNearbyRestaurants = async (req, res) => {
   try {
-    const { longitude, latitude, maxDistance = 5000 } = req.query; // maxDistance in meters
-    
+    const { longitude, latitude, maxDistance = 5000 } = req.query;
+
     const restaurants = await Restaurant.find({
       location: {
         $near: {
           $geometry: {
             type: "Point",
-            coordinates: [parseFloat(longitude), parseFloat(latitude)]
+            coordinates: [parseFloat(longitude), parseFloat(latitude)],
           },
-          $maxDistance: parseInt(maxDistance)
-        }
+          $maxDistance: parseInt(maxDistance),
+        },
       },
-      isAvailable: true
+      isAvailable: true,
     });
-    
+
     res.json(restaurants);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -85,13 +89,29 @@ const getNearbyRestaurants = async (req, res) => {
 // UPDATE Restaurant
 const updateRestaurant = async (req, res) => {
   try {
-    const restaurant = await Restaurant.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true, runValidators: true }
-    );
+    const updateData = { ...req.body };
+    if (req.file) {
+      updateData.imageUrl = `/uploads/${req.file.filename}`;
+    }
+    if (updateData.location) {
+      updateData.location = {
+        type: "Point",
+        coordinates: [parseFloat(updateData.location.longitude), parseFloat(updateData.location.latitude)],
+      };
+    }
+    if (updateData.openingHours) {
+      updateData.openingHours = JSON.parse(updateData.openingHours);
+    }
+    if (updateData.deliveryZones) {
+      updateData.deliveryZones = updateData.deliveryZones.split(",").map((zone) => zone.trim());
+    }
+
+    const restaurant = await Restaurant.findByIdAndUpdate(req.params.id, updateData, {
+      new: true,
+      runValidators: true,
+    });
     if (!restaurant) {
-      return res.status(404).json({ error: 'Restaurant not found' });
+      return res.status(404).json({ error: "Restaurant not found" });
     }
     res.json(restaurant);
   } catch (error) {
@@ -104,9 +124,9 @@ const deleteRestaurant = async (req, res) => {
   try {
     const restaurant = await Restaurant.findByIdAndDelete(req.params.id);
     if (!restaurant) {
-      return res.status(404).json({ error: 'Restaurant not found' });
+      return res.status(404).json({ error: "Restaurant not found" });
     }
-    res.json({ message: 'Restaurant deleted successfully' });
+    res.json({ message: "Restaurant deleted successfully" });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -115,23 +135,29 @@ const deleteRestaurant = async (req, res) => {
 // CREATE MenuItem
 const addMenuItem = async (req, res) => {
   try {
-    const { restaurantId, name, price, description, category, isVegetarian, isVegan } = req.body;
-    const imageUrl = req.file ? req.file.path : undefined;
-    
+    const { restaurantId, name, price, description, category, isVegetarian, isVegan, isAvailable } = req.body;
+    const imageUrl = req.file ? `/uploads/${req.file.filename}` : undefined;
+
+    if (!mongoose.Types.ObjectId.isValid(restaurantId)) {
+      return res.status(400).json({ error: "Invalid restaurantId format" });
+    }
+
     const menuItem = new MenuItem({
       restaurantId,
       name,
-      price,
-      description,
-      category,
+      price: parseFloat(price),
+      description: description || "",
+      category: category || "Uncategorized",
       imageUrl,
-      isVegetarian,
-      isVegan
+      isVegetarian: isVegetarian === "true",
+      isVegan: isVegan === "true",
+      isAvailable: isAvailable === "true" || true, // Default to true if not provided
     });
-    
+
     await menuItem.save();
     res.status(201).json(menuItem);
   } catch (error) {
+    console.error("Error adding menu item:", error.message);
     res.status(500).json({ error: error.message });
   }
 };
@@ -140,15 +166,25 @@ const addMenuItem = async (req, res) => {
 const getMenuItems = async (req, res) => {
   try {
     const { restaurantId, category, vegetarian, vegan } = req.query;
-    const filter = { restaurantId};
-    
+
+    if (!restaurantId) {
+      return res.status(400).json({ error: "restaurantId query parameter is required" });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(restaurantId)) {
+      return res.status(400).json({ error: "Invalid restaurantId format" });
+    }
+
+    const filter = { restaurantId: new mongoose.Types.ObjectId(restaurantId) };
+
     if (category) filter.category = category;
-    if (vegetarian === 'true') filter.isVegetarian = true;
-    if (vegan === 'true') filter.isVegan = true;
-    
+    if (vegetarian === "true") filter.isVegetarian = true;
+    if (vegan === "true") filter.isVegan = true;
+
     const menuItems = await MenuItem.find(filter);
     res.json(menuItems);
   } catch (error) {
+    console.error("Error fetching menu items:", error.message);
     res.status(500).json({ error: error.message });
   }
 };
@@ -156,9 +192,12 @@ const getMenuItems = async (req, res) => {
 // READ Single Menu Item by ID
 const getMenuItemById = async (req, res) => {
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ error: "Invalid menu item ID format" });
+    }
     const menuItem = await MenuItem.findById(req.params.id);
     if (!menuItem) {
-      return res.status(404).json({ error: 'Menu item not found' });
+      return res.status(404).json({ error: "Menu item not found" });
     }
     res.json(menuItem);
   } catch (error) {
@@ -169,21 +208,30 @@ const getMenuItemById = async (req, res) => {
 // UPDATE Menu Item
 const updateMenuItem = async (req, res) => {
   try {
-    const updateData = { ...req.body };
-    if (req.file) {
-      updateData.imageUrl = req.file.path;
+    const updateData = {};
+    if (req.body.name) updateData.name = req.body.name;
+    if (req.body.description) updateData.description = req.body.description;
+    if (req.body.price) updateData.price = parseFloat(req.body.price);
+    if (req.body.category) updateData.category = req.body.category;
+    if (req.body.isVegetarian !== undefined) updateData.isVegetarian = req.body.isVegetarian === "true";
+    if (req.body.isVegan !== undefined) updateData.isVegan = req.body.isVegan === "true";
+    if (req.body.isAvailable !== undefined) updateData.isAvailable = req.body.isAvailable === "true";
+    if (req.file) updateData.imageUrl = `/uploads/${req.file.filename}`;
+
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({ error: "No valid fields provided for update" });
     }
-    
-    const menuItem = await MenuItem.findByIdAndUpdate(
-      req.params.id,
-      updateData,
-      { new: true, runValidators: true }
-    );
+
+    const menuItem = await MenuItem.findByIdAndUpdate(req.params.id, updateData, {
+      new: true,
+      runValidators: true,
+    });
     if (!menuItem) {
-      return res.status(404).json({ error: 'Menu item not found' });
+      return res.status(404).json({ error: "Menu item not found" });
     }
     res.json(menuItem);
   } catch (error) {
+    console.error("Error updating menu item:", error.message);
     res.status(500).json({ error: error.message });
   }
 };
@@ -191,11 +239,14 @@ const updateMenuItem = async (req, res) => {
 // DELETE Menu Item
 const deleteMenuItem = async (req, res) => {
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ error: "Invalid menu item ID format" });
+    }
     const menuItem = await MenuItem.findByIdAndDelete(req.params.id);
     if (!menuItem) {
-      return res.status(404).json({ error: 'Menu item not found' });
+      return res.status(404).json({ error: "Menu item not found" });
     }
-    res.json({ message: 'Menu item deleted successfully' });
+    res.json({ message: "Menu item deleted successfully" });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -205,19 +256,22 @@ const deleteMenuItem = async (req, res) => {
 const addReview = async (req, res) => {
   try {
     const { restaurantId, userId, rating, comment } = req.body;
-    
+
+    if (!mongoose.Types.ObjectId.isValid(restaurantId)) {
+      return res.status(400).json({ error: "Invalid restaurantId format" });
+    }
+
     const review = new Review({
       restaurantId,
       userId,
-      rating,
-      comment
+      rating: parseFloat(rating),
+      comment,
     });
-    
+
     await review.save();
-    
-    // Update restaurant average rating
+
     await updateRestaurantRating(restaurantId);
-    
+
     res.status(201).json(review);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -227,8 +281,12 @@ const addReview = async (req, res) => {
 // GET Reviews for a restaurant
 const getRestaurantReviews = async (req, res) => {
   try {
-    const reviews = await Review.find({ restaurantId: req.params.restaurantId })
-      .sort({ createdAt: -1 });
+    if (!mongoose.Types.ObjectId.isValid(req.params.restaurantId)) {
+      return res.status(400).json({ error: "Invalid restaurantId format" });
+    }
+    const reviews = await Review.find({ restaurantId: req.params.restaurantId }).sort({
+      createdAt: -1,
+    });
     res.json(reviews);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -237,15 +295,19 @@ const getRestaurantReviews = async (req, res) => {
 
 // Helper function to update restaurant rating
 const updateRestaurantRating = async (restaurantId) => {
-  const result = await Review.aggregate([
-    { $match: { restaurantId: mongoose.Types.ObjectId(restaurantId) } },
-    { $group: { _id: null, averageRating: { $avg: "$rating" } } }
-  ]);
-  
-  if (result.length > 0) {
-    await Restaurant.findByIdAndUpdate(restaurantId, {
-      rating: result[0].averageRating.toFixed(1)
-    });
+  try {
+    const result = await Review.aggregate([
+      { $match: { restaurantId: new mongoose.Types.ObjectId(restaurantId) } },
+      { $group: { _id: null, averageRating: { $avg: "$rating" } } },
+    ]);
+
+    if (result.length > 0) {
+      await Restaurant.findByIdAndUpdate(restaurantId, {
+        rating: result[0].averageRating.toFixed(1),
+      });
+    }
+  } catch (error) {
+    console.error("Error updating restaurant rating:", error.message);
   }
 };
 
@@ -262,5 +324,5 @@ module.exports = {
   updateMenuItem,
   deleteMenuItem,
   addReview,
-  getRestaurantReviews
+  getRestaurantReviews,
 };

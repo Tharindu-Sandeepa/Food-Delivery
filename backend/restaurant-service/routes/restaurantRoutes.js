@@ -1,26 +1,23 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const restaurantController = require('../controllers/restaurantController');
-const multer = require('multer');
-const upload = multer({ dest: 'uploads/' });
+const restaurantController = require("../controllers/restaurantController");
+const upload = require("../config/multerConfig");
 
-// MenuItem Routes
-router.post('/menu', upload.single('image'), restaurantController.addMenuItem);
-router.get('/menu', restaurantController.getMenuItems);
-router.get('/menu/:id', restaurantController.getMenuItemById);
-router.put('/menu/:id', upload.single('image'), restaurantController.updateMenuItem);
-router.delete('/menu/:id', restaurantController.deleteMenuItem);
+router.post("/", upload.single("image"), restaurantController.addRestaurant);
+router.get("/", restaurantController.getRestaurants);
+router.get("/nearby", restaurantController.getNearbyRestaurants);
 
-// Restaurant Routes
-router.post('/', restaurantController.addRestaurant);
-router.get('/', restaurantController.getRestaurants);
-router.get('/nearby', restaurantController.getNearbyRestaurants);
-router.get('/:id', restaurantController.getRestaurantById);
-router.put('/:id', restaurantController.updateRestaurant);
-router.delete('/:id', restaurantController.deleteRestaurant);
+router.get("/menu", restaurantController.getMenuItems);
+router.post("/menu", upload.single("image"), restaurantController.addMenuItem);
+router.get("/menu/:id", restaurantController.getMenuItemById);
+router.put("/menu/:id", upload.single("image"), restaurantController.updateMenuItem);
+router.delete("/menu/:id", restaurantController.deleteMenuItem);
 
-// Review Routes
-router.post('/:restaurantId/reviews', restaurantController.addReview);
-router.get('/:restaurantId/reviews', restaurantController.getRestaurantReviews);
+router.get("/:id", restaurantController.getRestaurantById);
+router.put("/:id", upload.single("image"), restaurantController.updateRestaurant);
+router.delete("/:id", restaurantController.deleteRestaurant);
+
+router.post("/:restaurantId/reviews", restaurantController.addReview);
+router.get("/:restaurantId/reviews", restaurantController.getRestaurantReviews);
 
 module.exports = router;
