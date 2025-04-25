@@ -45,13 +45,13 @@ const userSchema = new mongoose.Schema({
       return this.role === 'customer' || this.role === 'delivery';
     }
   },
-  restaurantId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Restaurant',
-    required: function() {
-      return this.role === 'restaurant';
-    }
-  },
+  // restaurantId: {
+  //   type: mongoose.Schema.Types.ObjectId,
+  //   ref: 'Restaurant',
+  //   required: function() {
+  //     return this.role === 'restaurant';
+  //   }
+  // },
   isActive: {
     type: Boolean,
     default: true

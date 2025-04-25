@@ -21,7 +21,7 @@ const createUserHelper = async (userData) => {
     role,
     phone,
     address,
-    restaurantId
+    // restaurantId
   });
 
   return user;
