@@ -6,25 +6,30 @@ const mongoose = require("mongoose");
 // CREATE Restaurant
 const addRestaurant = async (req, res) => {
   try {
-    const { name, address, location, cuisineType, openingHours, deliveryZones } = req.body;
+    const { name, address, email, location, cuisineType, openingHours, deliveryZones } = req.body;
     const imageUrl = req.file ? `/uploads/${req.file.filename}` : undefined;
 
     const restaurant = new Restaurant({
       name,
       address,
+      email,
       location: {
         type: "Point",
         coordinates: [parseFloat(location.longitude), parseFloat(location.latitude)],
       },
       cuisineType,
       openingHours: JSON.parse(openingHours),
-      deliveryZones: deliveryZones.split(",").map((zone) => zone.trim()),
+      deliveryZones: deliveryZones ? deliveryZones.split(",").map((zone) => zone.trim()) : [],
       imageUrl,
     });
 
     await restaurant.save();
     res.status(201).json(restaurant);
   } catch (error) {
+    console.error("Error adding restaurant:", error.message);
+    if (error.code === 11000 && error.keyPattern.email) {
+      return res.status(400).json({ error: "Email already exists" });
+    }
     res.status(500).json({ error: error.message });
   }
 };
@@ -42,6 +47,7 @@ const getRestaurants = async (req, res) => {
     const restaurants = await Restaurant.find(filter);
     res.json(restaurants);
   } catch (error) {
+    console.error("Error fetching restaurants:", error.message);
     res.status(500).json({ error: error.message });
   }
 };
@@ -58,6 +64,25 @@ const getRestaurantById = async (req, res) => {
     }
     res.json(restaurant);
   } catch (error) {
+    console.error("Error fetching restaurant by ID:", error.message);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// READ Single Restaurant by Email
+const getRestaurantByEmail = async (req, res) => {
+  try {
+    const { email } = req.params;
+    if (!email || typeof email !== "string") {
+      return res.status(400).json({ error: "Invalid email format" });
+    }
+    const restaurant = await Restaurant.findOne({ email });
+    if (!restaurant) {
+      return res.status(404).json({ error: "Restaurant not found" });
+    }
+    res.json(restaurant);
+  } catch (error) {
+    console.error("Error fetching restaurant by email:", error.message);
     res.status(500).json({ error: error.message });
   }
 };
@@ -82,6 +107,7 @@ const getNearbyRestaurants = async (req, res) => {
 
     res.json(restaurants);
   } catch (error) {
+    console.error("Error fetching nearby restaurants:", error.message);
     res.status(500).json({ error: error.message });
   }
 };
@@ -89,21 +115,28 @@ const getNearbyRestaurants = async (req, res) => {
 // UPDATE Restaurant
 const updateRestaurant = async (req, res) => {
   try {
-    const updateData = { ...req.body };
-    if (req.file) {
-      updateData.imageUrl = `/uploads/${req.file.filename}`;
-    }
-    if (updateData.location) {
+    const updateData = {};
+    if (req.body.name) updateData.name = req.body.name;
+    if (req.body.address) updateData.address = req.body.address;
+    if (req.body.email) updateData.email = req.body.email;
+    if (req.body.cuisineType) updateData.cuisineType = req.body.cuisineType;
+    if (req.body.location) {
       updateData.location = {
         type: "Point",
-        coordinates: [parseFloat(updateData.location.longitude), parseFloat(updateData.location.latitude)],
+        coordinates: [parseFloat(req.body.location.longitude), parseFloat(req.body.location.latitude)],
       };
     }
-    if (updateData.openingHours) {
-      updateData.openingHours = JSON.parse(updateData.openingHours);
+    if (req.body.openingHours) {
+      updateData.openingHours = JSON.parse(req.body.openingHours);
     }
-    if (updateData.deliveryZones) {
-      updateData.deliveryZones = updateData.deliveryZones.split(",").map((zone) => zone.trim());
+    if (req.body.deliveryZones) {
+      updateData.deliveryZones = req.body.deliveryZones.split(",").map((zone) => zone.trim());
+    }
+    if (req.file) updateData.imageUrl = `/uploads/${req.file.filename}`;
+    if (req.body.isAvailable !== undefined) updateData.isAvailable = req.body.isAvailable === "true";
+
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({ error: "No valid fields provided for update" });
     }
 
     const restaurant = await Restaurant.findByIdAndUpdate(req.params.id, updateData, {
@@ -115,6 +148,10 @@ const updateRestaurant = async (req, res) => {
     }
     res.json(restaurant);
   } catch (error) {
+    console.error("Error updating restaurant:", error.message);
+    if (error.code === 11000 && error.keyPattern.email) {
+      return res.status(400).json({ error: "Email already exists" });
+    }
     res.status(500).json({ error: error.message });
   }
 };
@@ -122,12 +159,16 @@ const updateRestaurant = async (req, res) => {
 // DELETE Restaurant
 const deleteRestaurant = async (req, res) => {
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ error: "Invalid restaurant ID format" });
+    }
     const restaurant = await Restaurant.findByIdAndDelete(req.params.id);
     if (!restaurant) {
       return res.status(404).json({ error: "Restaurant not found" });
     }
     res.json({ message: "Restaurant deleted successfully" });
   } catch (error) {
+    console.error("Error deleting restaurant:", error.message);
     res.status(500).json({ error: error.message });
   }
 };
@@ -151,7 +192,7 @@ const addMenuItem = async (req, res) => {
       imageUrl,
       isVegetarian: isVegetarian === "true",
       isVegan: isVegan === "true",
-      isAvailable: isAvailable === "true" || true, // Default to true if not provided
+      isAvailable: isAvailable === "true" || true,
     });
 
     await menuItem.save();
@@ -201,6 +242,7 @@ const getMenuItemById = async (req, res) => {
     }
     res.json(menuItem);
   } catch (error) {
+    console.error("Error fetching menu item:", error.message);
     res.status(500).json({ error: error.message });
   }
 };
@@ -248,6 +290,7 @@ const deleteMenuItem = async (req, res) => {
     }
     res.json({ message: "Menu item deleted successfully" });
   } catch (error) {
+    console.error("Error deleting menu item:", error.message);
     res.status(500).json({ error: error.message });
   }
 };
@@ -274,6 +317,7 @@ const addReview = async (req, res) => {
 
     res.status(201).json(review);
   } catch (error) {
+    console.error("Error adding review:", error.message);
     res.status(500).json({ error: error.message });
   }
 };
@@ -289,6 +333,7 @@ const getRestaurantReviews = async (req, res) => {
     });
     res.json(reviews);
   } catch (error) {
+    console.error("Error fetching reviews:", error.message);
     res.status(500).json({ error: error.message });
   }
 };
@@ -315,6 +360,7 @@ module.exports = {
   addRestaurant,
   getRestaurants,
   getRestaurantById,
+  getRestaurantByEmail,
   getNearbyRestaurants,
   updateRestaurant,
   deleteRestaurant,
