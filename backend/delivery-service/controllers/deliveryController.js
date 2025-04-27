@@ -1,35 +1,9 @@
 const Delivery = require("../models/Delivery");
 const Driver = require("../models/Driver");
-
-const BASE_URL = "http://localhost:3001/api/orders";
-
-// Create or assign a new delivery
-// exports.assignDelivery = async (req, res) => {
-//   try {
-//     const {
-//       deliveryId,
-//       orderId,
-//       driverId,
-//       driverName,
-//       startLocation,
-//       endLocation,
-//     } = req.body;
-
-//     const delivery = await Delivery.create({
-//       deliveryId,
-//       orderId,
-//       driverId,
-//       driverName,
-//       startLocation,
-//       endLocation,
-//     });
-//     res.status(201).json(delivery);
-//   } catch (err) {
-//     res.status(500).json({ message: err.message });
-//   }
-// };
-
 const axios = require("axios");
+
+const BASE_URL = process.env.ORDER_SERVICE_URL + "/api/orders" || "http://localhost:3001/api/orders";
+
 
 exports.assignDriver = async (req, res) => {
   try {
