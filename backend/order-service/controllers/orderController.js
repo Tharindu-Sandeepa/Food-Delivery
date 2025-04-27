@@ -215,3 +215,17 @@ exports.receiveDriverAssignment = async (req, res) => {
   }
 };
 
+// Get order by Customer Id
+exports.getOrderByDeliveryId = async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log(id);
+    const orders = await Order.findOne({ deliveryId: id });
+    console.log("orders", orders);
+    if (!orders || orders.length === 0)
+      return res.status(404).json({ message: "Orders not found" });
+    res.json(orders);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};

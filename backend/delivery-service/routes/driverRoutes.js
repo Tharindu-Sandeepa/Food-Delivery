@@ -13,10 +13,10 @@ router.delete('/:id', driverController.deleteDriver);
 router.get('/nearest/find', driverController.findNearestDriver);
 
 // Get delivery route
-router.get("/:deliveryId/route", driverController.getDeliveryRoute);
+
 
 // Get current driver position
-router.get("/:deliveryId/position", driverController.getDriverCurrentPossition);
+
 
 // get driver stats
 //router.get("/:driverId/stats", driverController.getDriverStats); 

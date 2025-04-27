@@ -3,6 +3,8 @@ const router = express.Router();
 const controller = require("../controllers/deliveryController");
 const verifyToken = require("../middlewares/verifyToken");
 
+router.get("/:deliveryId/position", controller.getDriverCurrentPossition);
+router.get("/:deliveryId/route", controller.getDeliveryRoute);
 router.post("/assign", controller.assignDriver);
 router.patch("/:id/status", controller.updateStatus);
 router.patch("/:id/complete", controller.completeDelivery);

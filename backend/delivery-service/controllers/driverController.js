@@ -511,41 +511,5 @@ exports.getEarningsTrend = async (req, res) => {
 };
 
 
-exports.getDeliveryRoute = async (req, res) => {
-  try {
-    const delivery = await Delivery.findOne({ deliveryId: req.params.deliveryId });
-    
-    if (!delivery) {
-      return res.status(404).json({ error: 'Delivery not found' });
-    }
 
-    // Get route from OpenRouteService
-    const response = await fetch(
-      `https://api.openrouteservice.org/v2/directions/driving-car?api_key=${process.env.ORS_API_KEY}&start=${delivery.startLocation.lng},${delivery.startLocation.lat}&end=${delivery.endLocation.lng},${delivery.endLocation.lat}`
-    );
-    
-    const data = await response.json();
-    const coordinates = data.features[0].geometry.coordinates;
-    const points = coordinates.map(coord => [coord[1], coord[0]]);
-    
-    res.json({ route: points });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Failed to get route' });
-  }
-}
 
-exports.getDriverCurrentPossition = async (req, res) => {
-  try {
-    const delivery = await Delivery.findOne({ deliveryId: req.params.deliveryId });
-    const driver = await Driver.findOne({ userId: delivery.driverId });
-    
-    res.json({
-      lat: driver.location.coordinates[1],
-      lng: driver.location.coordinates[0]
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Failed to get position' });
-  }
-}
