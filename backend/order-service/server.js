@@ -1,6 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const orderRoutes = require('./routes/orderRoutes');
+const Cart = require('./routes/cartRoutes');
 const app = express();
 const PORT = process.env.PORT || 3001;
 const dotenv = require('dotenv');
@@ -17,6 +18,7 @@ mongoose.connect(mongoUri)
   .catch(err => console.error('MongoDB connection error:', err));
 
 app.use('/api/orders', orderRoutes);
+app.use('/api/cart', Cart);
 
 app.listen(PORT, () => {
   console.log(`Order Service running on port ${PORT}`);
