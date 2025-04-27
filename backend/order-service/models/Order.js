@@ -1,4 +1,3 @@
-// Order Model
 const mongoose = require("mongoose");
 
 const itemSchema = new mongoose.Schema({
@@ -31,11 +30,21 @@ const orderSchema = new mongoose.Schema({
   deliveryId: { type: String },
   status: {
     type: String,
-    enum: ["pending", "preparing", "assigned", "delivering", "completed", "cancelled"],
+    enum: [
+      "pending",
+      "preparing",
+      "assigned",
+      "delivering",
+      "completed",
+      "cancelled",
+    ],
     default: "pending",
   },
   paymentMethod: { type: String, required: true },
+  paymentMethodId: { type: String }, // Added for card payments
   createdAt: { type: Date, default: Date.now },
 });
 
 module.exports = mongoose.model("Order", orderSchema);
+
+
