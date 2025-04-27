@@ -4,6 +4,8 @@ const stripe = require("stripe")(
   "sk_test_51RIKxMFfm4N1s9LdAKbYqvagjsHQdVKE0R2xGIX5blXbpWzdhYTtMfD5tDtNMR5PRvZgmXalNWPd3A1abREucU5Z005lbi9sAy"
 );
 
+const DELIVERY_SERVICE_URL = process.env.DELIVERY_SERVICE_URL || 'http://localhost:3003';
+
 // Create new order
 exports.createOrder = async (req, res) => {
   try {
@@ -162,17 +164,14 @@ exports.markOrderReady = async (req, res) => {
 
     let response = {};
     try {
-      // Notify Delivery Service
-      const deliveryResponse = await axios.post(
-        "http://localhost:3003/api/deliveries/assign",
-        {
-          orderId: order.orderId,
-          deliveryFee: order.deliveryFee,
-          restaurantId: order.restaurantId,
-          deliveryAddress: order.deliveryAddress,
-          startLocation: order.restaurantLocation,
-        }
-      );
+      // Directly notify the Delivery Service
+      const deliveryResponse = await axios.post(`${DELIVERY_SERVICE_URL}/api/deliveries/assign`, {
+        orderId: order.orderId,
+        deliveryFee: order.deliveryFee,
+        restaurantId: order.restaurantId,
+        deliveryAddress: order.deliveryAddress,
+        startLocation: order.restaurantLocation
+      });
       console.log("Delivery Service response>>>>:", deliveryResponse.data);
       response = deliveryResponse.data;
     } catch (axiosError) {
