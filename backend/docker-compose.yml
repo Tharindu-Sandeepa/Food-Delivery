@@ -42,8 +42,8 @@ services:
       - MONGO_URI=mongodb+srv://tharindunsandeepa:PgjEdF4EGp3OFMsi@clusteraf.sezfa.mongodb.net/food-delivery?retryWrites=true&w=majority
       - PORT=3004
 
-  auth-service:
-    build: ./auth-service
+  user-service:
+    build: ./user-service
     ports:
       - "3005:3005"
     environment:
