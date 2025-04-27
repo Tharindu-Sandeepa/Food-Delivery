@@ -6,13 +6,14 @@ const mongoose = require("mongoose");
 // CREATE Restaurant
 const addRestaurant = async (req, res) => {
   try {
-    const { name, address, email, location, cuisineType, openingHours, deliveryZones } = req.body;
+    const { name, address, email, location, cuisineType, openingHours, deliveryZones ,id} = req.body;
     const imageUrl = req.file ? `/uploads/${req.file.filename}` : undefined;
 
     const restaurant = new Restaurant({
       name,
       address,
       email,
+      id,
       location: {
         type: "Point",
         coordinates: [parseFloat(location.longitude), parseFloat(location.latitude)],
