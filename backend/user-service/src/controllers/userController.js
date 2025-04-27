@@ -2,6 +2,8 @@ const User = require('../models/User');
 const ErrorResponse = require('../utils/errorResponse');
 const asyncHandler = require('../middleware/async');
 const bcrypt = require('bcryptjs');
+const {sendPasswordResetEmail} = require('../utils/email');
+const crypto = require('crypto'); 
 
 // Helper function to create a user
 const createUserHelper = async (userData) => {
@@ -19,14 +21,13 @@ const createUserHelper = async (userData) => {
     role,
     phone,
     address,
-    restaurantId
+    // restaurantId
   });
 
   return user;
 };
 
 // @desc    Register user
-// @route   POST /api/v1/auth/register
 // @access  Public
 exports.register = asyncHandler(async (req, res, next) => {
   const user = await createUserHelper(req.body);
@@ -34,7 +35,6 @@ exports.register = asyncHandler(async (req, res, next) => {
 });
 
 // @desc    Login user
-// @route   POST /api/v1/auth/login
 // @access  Public
 exports.login = asyncHandler(async (req, res, next) => {
   const { email, password } = req.body;
@@ -59,7 +59,6 @@ exports.login = asyncHandler(async (req, res, next) => {
 });
 
 // @desc    Get current logged in user
-// @route   GET /api/v1/auth/me
 // @access  Private
 exports.getMe = asyncHandler(async (req, res, next) => {
   const user = await User.findById(req.user.id);
@@ -71,7 +70,6 @@ exports.getMe = asyncHandler(async (req, res, next) => {
 });
 
 // @desc    Update user details
-// @route   PUT /api/v1/auth/updatedetails
 // @access  Private
 exports.updateDetails = asyncHandler(async (req, res, next) => {
   const fieldsToUpdate = {
@@ -229,3 +227,69 @@ const sendTokenResponse = (user, statusCode, res) => {
       user
     });
 };
+
+
+// @desc    Forgot Password (Send Reset Email)
+// @route   POST /api/v1/users/forgotpassword
+// @access  Public
+exports.forgotPassword = asyncHandler(async (req, res, next) => {
+  const user = await User.findOne({ email: req.body.email });
+  if (!user) {
+    return next(new ErrorResponse('No user with that email', 404));
+  }
+
+  const resetToken = user.createPasswordResetToken();
+  await user.save({ validateBeforeSave: false });
+
+  // Verify the update
+  const updatedUser = await User.findOne({ email: req.body.email });
+  console.log('Stored Hashed Token:', updatedUser.passwordResetToken);
+  console.log('Stored Expires:', updatedUser.passwordResetExpires);
+
+  try {
+    await sendPasswordResetEmail(user.email, resetToken);
+    res.status(200).json({
+      success: true,
+      message: 'Password reset email sent',
+      token: resetToken,
+      expires: user.passwordResetExpires
+    });
+  } catch (err) {
+    user.passwordResetToken = undefined;
+    user.passwordResetExpires = undefined;
+    await user.save({ validateBeforeSave: false });
+    return next(new ErrorResponse('Email could not be sent', 500));
+  }
+});
+
+// @desc    Reset Password
+// @route   PUT /api/v1/users/resetpassword/:token
+// @access  Public
+exports.resetPassword = asyncHandler(async (req, res, next) => {
+  const hashedToken = crypto
+    .createHash('sha256')
+    .update(req.params.token)
+    .digest('hex');
+
+  console.log('Received token:', req.params.token);
+  console.log('Hashed token:', hashedToken);
+  console.log('Current time:', new Date());
+
+  const user = await User.findOne({
+    passwordResetToken: hashedToken,
+    passwordResetExpires: { $gt: Date.now() }
+  });
+
+  if (!user) {
+    console.log('No user found with matching token or token expired');
+    console.log('Stored hashed token:', user ? user.passwordResetToken : 'No user');
+    return next(new ErrorResponse('Token is invalid or has expired', 400));
+  }
+
+  user.password = req.body.password;
+  user.passwordResetToken = undefined;
+  user.passwordResetExpires = undefined;
+  await user.save();
+
+  sendTokenResponse(user, 200, res);
+});
