@@ -3,6 +3,6 @@ kind: ConfigMap
 metadata:
   name: order-service-config
 data:
-  MONGO_URI: mongodb+srv://Kasun:Kasun@cluster0.rj9xr.mongodb.net/FoodDB?retryWrites=true&w=majority
+  MONGO_URI: mongodb+srv://asiri123:asiri123@lahiru.i5jrnnb.mongodb.net/food-delivery?retryWrites=true&w=majority&appName=Lahiru
   PORT: "3001"
   DELIVERY_SERVICE_URL: http://delivery-service:3003
