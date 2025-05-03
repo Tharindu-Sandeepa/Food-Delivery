@@ -267,6 +267,10 @@ exports.forgotPassword = asyncHandler(async (req, res, next) => {
 //    GET /api/v1/users/public/:id
 //   Public
 exports.getPublicUser = asyncHandler(async (req, res, next) => {
+
+  // Check if user ID is provided
+  console.log("user id ", req.params.id);
+
   // Validate ObjectId
   if (!req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
     return next(new ErrorResponse('Invalid user ID', 400));

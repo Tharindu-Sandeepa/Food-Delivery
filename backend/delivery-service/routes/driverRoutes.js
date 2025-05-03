@@ -11,21 +11,8 @@ router.get('/:id', driverController.getDriver);
 router.put('/:userId', driverController.updateDriver);
 router.delete('/:id', driverController.deleteDriver);
 router.get('/nearest/find', driverController.findNearestDriver);
-
-// Get delivery route
-
-
-// Get current driver position
-
-
-// get driver stats
-//router.get("/:driverId/stats", driverController.getDriverStats); 
-
-// fetch only recent deliveries
 router.get("/:userId/recent-deliveries", driverController.getRecentDeliveries);
-
 router.get("/:userId/earnings-trend", driverController.getEarningsTrend);
-
 router.get("/:userId/heatmap", driverController.getDeliveryHeatmap);
 
 module.exports = router;

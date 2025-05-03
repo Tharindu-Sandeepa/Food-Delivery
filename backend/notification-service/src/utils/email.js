@@ -5,8 +5,8 @@ const transporter = nodemailer.createTransport({
   port: 587,
   secure: false,
   auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASSWORD,
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_PASS,
   },
   tls: {
     rejectUnauthorized: false
@@ -19,7 +19,7 @@ const sendOrderConfirmationEmail = async (email, userName, orderDetails) => {
     const { orderId, items, total, restaurantName } = orderDetails;
 
     await transporter.sendMail({
-      from: `"DS Food App" <${process.env.EMAIL_USER}>`,
+      from: `"FoodDash" <${process.env.GMAIL_USER}>`,
       to: email,
       subject: `Order Confirmation - Order #${orderId}`,
       html: `
@@ -35,7 +35,7 @@ const sendOrderConfirmationEmail = async (email, userName, orderDetails) => {
             .join('')}
         </ul>
         <p><strong>Total:</strong> $${total.toFixed(2)}</p>
-        <p>Track your order at <a href="${process.env.FRONTEND_URL}/orders/${orderId}">View Order</a>.</p>
+        <p>Track your order at <a href="${process.env.FRONTEND_URL}/orders/">View Order</a>.</p>
         <p>Thank you for choosing DS Food!</p>
       `,
     });
@@ -45,20 +45,58 @@ const sendOrderConfirmationEmail = async (email, userName, orderDetails) => {
   }
 };
 
+// Send order details to restaurant
+const sendOrderDetailsToRestaurant = async (email, orderDetails) => {
+  try {
+    const { orderId, items, total, userName } = orderDetails;
+
+    await transporter.sendMail({
+      from: `"FoodDash" <${process.env.GMAIL_USER}>`,
+      to: email,
+      subject: `New Order Received - Order #${orderId}`,
+      html: `
+        <h2>New Order Received!</h2>
+        <p>You have a new order from ${userName}.</p>
+        <h3>Order Details</h3>
+        <ul>
+          ${items
+            .map(
+              (item) =>
+                `<li>${item.name} x${item.quantity} - $${item.price.toFixed(2)}</li>`
+            )
+            .join('')}
+        </ul>
+        <p><strong>Total:</strong> $${total.toFixed(2)}</p>
+        <p>View order details at <a href="${process.env.FRONTEND_URL}/admin">View Order</a>.</p>
+      `,
+    });
+  } catch (err) {
+    console.error('Order details email error:', err);
+    throw new Error('Order details email could not be sent');
+  }
+};
+
 // Send delivery completion email
 const sendDeliveryCompletionEmail = async (email, userName, orderId) => {
+
+  console.log("Sending delivery completion email to:", email);
+  console.log("from", `"FoodDash" <${process.env.GMAIL_USER}>`)
+
   try {
     await transporter.sendMail({
-      from: `"DS Food App" <${process.env.EMAIL_USER}>`,
+      from: `"FoodDash" <${process.env.GMAIL_USER}>`,
       to: email,
       subject: `Order #${orderId} Delivered`,
       html: `
         <h2>Hello, ${userName}!</h2>
         <p>Great news! Your order #${orderId} has been successfully delivered.</p>
-        <p>We hope you enjoy your meal! View details at <a href="${process.env.FRONTEND_URL}/orders/${orderId}">View Order</a>.</p>
+        <p>We hope you enjoy your meal! View details at <a href="${process.env.FRONTEND_URL}/orders">View Order</a>.</p>
         <p>Thank you for choosing DS Food!</p>
       `,
     });
+
+    console.log("Delivery completion email sent successfully to:", email);
+    
   } catch (err) {
     console.error('Delivery completion email error:', err);
     throw new Error('Delivery completion email could not be sent');
@@ -68,4 +106,5 @@ const sendDeliveryCompletionEmail = async (email, userName, orderId) => {
 module.exports = {
   sendOrderConfirmationEmail,
   sendDeliveryCompletionEmail,
+  sendOrderDetailsToRestaurant,
 };

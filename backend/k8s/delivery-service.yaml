@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: delivery-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: delivery-service
+  template:
+    metadata:
+      labels:
+        app: delivery-service
+    spec:
+      containers:
+        - name: delivery-service
+          image: delivery-service:v1
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 3003
+          envFrom:
+            - configMapRef:
+                name: delivery-service-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: delivery-service
+spec:
+  type: ClusterIP
+  selector:
+    app: delivery-service
+  ports:
+    - port: 3003
+      targetPort: 3003

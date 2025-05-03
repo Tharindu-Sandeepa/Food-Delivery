@@ -56,3 +56,15 @@ services:
       - JWT_EXPIRE=30d
       - JWT_COOKIE_EXPIRE=30
       - NODE_ENV=development
+
+  notification-service:
+    build: ./notification-service
+    ports:
+      - "3006:3006"
+    environment:
+      - MONGO_URI=mongodb+srv://Kasun:Kasun@cluster0.rj9xr.mongodb.net/FoodDB?retryWrites=true&w=majority
+      - PORT=3006
+      - GMAIL_USER = lakshithakasun998@gmail.com
+      - GMAIL_PASS = kbbdxilmyqneccat
+      - USER_SERVICE_URL=http://localhost:3005
+      - FRONTEND_URL=http://localhost:3000

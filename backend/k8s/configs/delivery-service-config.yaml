@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: delivery-service-config
+data:
+  MONGO_URI: mongodb+srv://Kasun:Kasun@cluster0.rj9xr.mongodb.net/FoodDB?retryWrites=true&w=majority
+  PORT: "3003"
+  ORS_API_KEY: 5b3ce3597851110001cf6248e516113c76694476b8b2cfbd0efb7661
+  ORDER_SERVICE_URL: http://order-service:3001

@@ -130,13 +130,11 @@ io.on("connection", (socket) => {
     debugConnections();
   });
 
-  // Ping/pong for connection health
   socket.on("ping", (cb) => {
     if (typeof cb === 'function') cb();
   });
 });
 
-// Debug connection status every minute
 setInterval(debugConnections, 60000);
 
 server.listen(PORT, () => {

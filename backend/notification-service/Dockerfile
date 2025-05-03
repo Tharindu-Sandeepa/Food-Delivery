@@ -14,6 +14,6 @@ COPY . .
 # Create logs directory
 RUN mkdir -p /app/logs
 
-EXPOSE 3005
+EXPOSE 3006
 
 CMD ["npm", "start"]

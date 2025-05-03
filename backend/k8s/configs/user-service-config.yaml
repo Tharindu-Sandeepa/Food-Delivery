@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: user-service-config
+data:
+  MONGO_URI: mongodb+srv://Kasun:Kasun@cluster0.rj9xr.mongodb.net/FoodDB?retryWrites=true&w=majority
+  PORT: "3005"
+  JWT_SECRET: f72d352a9cf052e3b4d18e4a0dddc0babc19e5cdc31f7c14991edba212b05d38
+  JWT_EXPIRE: 30d
+  JWT_COOKIE_EXPIRE: "30"
+  NODE_ENV: development

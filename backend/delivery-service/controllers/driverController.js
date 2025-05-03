@@ -148,59 +148,6 @@ exports.findNearestDriver = async (req, res) => {
   }
 };
 
-// exports.getDriverStats = async (req, res) => {
-//   try {
-//     const { driverId } = req.params;
-
-//     if (!driverId) {
-//       return res.status(400).json({ error: "Driver ID is required" });
-//     }
-
-//     console.log("Driver stats ID:", driverId);
-
-//     // Verify driver exists
-//     const driver = await Driver.find({ driverId: driverId });
-//     if (!driver) {
-//       return res.status(404).json({ error: "Driver not found" });
-//     }
-
-//     // Calculate stats based on deliveries
-//     const now = new Date();
-//     const startOfToday = new Date(now.setHours(0, 0, 0, 0));
-//     const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay()));
-//     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-
-//     // Get all completed deliveries for this driver
-//     const deliveries = await Delivery.find({
-//       driverId,
-//       status: "completed",
-//     });
-
-//     // Calculate earnings
-//     const stats = {
-//       today: deliveries
-//         .filter((d) => d.createdAt >= startOfToday)
-//         .reduce((sum, d) => sum + (d.deliveryFee || 0), 0),
-//       week: deliveries
-//         .filter((d) => d.createdAt >= startOfWeek)
-//         .reduce((sum, d) => sum + (d.deliveryFee || 0), 0),
-//       month: deliveries
-//         .filter((d) => d.createdAt >= startOfMonth)
-//         .reduce((sum, d) => sum + (d.deliveryFee || 0), 0),
-//       total: deliveries.reduce((sum, d) => sum + (d.deliveryFee || 0), 0),
-//     };
-
-//     res.json(stats);
-//   } catch (error) {
-//     console.error("Error getting driver stats:", error);
-//     res.status(500).json({ error: "Failed to get driver stats" });
-//   }
-// };
-
-
-// Get driver stats with detailed chart data
-
-
 exports.getDriverStats = async (req, res) => {
   try {
     const driverId = req.params.driverId;

@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: restaurant-service-config
+data:
+  MONGO_URI: mongodb+srv://Kasun:Kasun@cluster0.rj9xr.mongodb.net/FoodDB?retryWrites=true&w=majority
+  PORT: "3002"

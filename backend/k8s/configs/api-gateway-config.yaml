@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: api-gateway-config
+data:
+  ORDER_SERVICE_URL: http://order-service:3001
+  RESTAURANT_SERVICE_URL: http://restaurant-service:3002
+  DELIVERY_SERVICE_URL: http://delivery-service:3003
+  PAYMENT_SERVICE_URL: http://payment-service:3004
+  USER_SERVICE_URL: http://user-service:3005
+  NOTIFICATION_SERVICE_URL: http://notification-service:3006
