@@ -3,5 +3,5 @@ kind: ConfigMap
 metadata:
   name: restaurant-service-config
 data:
-  MONGO_URI: mongodb+srv://Kasun:Kasun@cluster0.rj9xr.mongodb.net/FoodDB?retryWrites=true&w=majority
+  MONGO_URI: mongodb+srv://tharindunsandeepa:PgjEdF4EGp3OFMsi@clusteraf.sezfa.mongodb.net/food-delivery?retryWrites=true&w=majority&appName=ClusterAF
   PORT: "3002"
