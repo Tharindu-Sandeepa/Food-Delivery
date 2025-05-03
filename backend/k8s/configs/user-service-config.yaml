@@ -3,9 +3,11 @@ kind: ConfigMap
 metadata:
   name: user-service-config
 data:
-  MONGO_URI: mongodb+srv://Kasun:Kasun@cluster0.rj9xr.mongodb.net/FoodDB?retryWrites=true&w=majority
+  MONGO_URI: mongodb+srv://ridmasathsara47:k9FqVJ9AA5zbn4bb@dsfood.wnxsjnt.mongodb.net/?retryWrites=true&w=majority&appName=dsfood
   PORT: "3005"
   JWT_SECRET: f72d352a9cf052e3b4d18e4a0dddc0babc19e5cdc31f7c14991edba212b05d38
   JWT_EXPIRE: 30d
   JWT_COOKIE_EXPIRE: "30"
   NODE_ENV: development
+  EMAIL_USER: ridmasathsara47@gmail.com
+  EMAIL_PASSWORD: tpxg wyjb vkuu trpx
