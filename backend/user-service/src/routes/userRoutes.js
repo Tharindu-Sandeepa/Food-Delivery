@@ -1,5 +1,5 @@
 const express = require('express');
-const {register,login,getMe,updateDetails,updatePassword,getUsers,getUser,createUser,updateUser,deleteUser,forgotPassword,resetPassword} = require('../controllers/userController');
+const {register,login,getMe,updateDetails,updatePassword,getUsers,getUser,createUser,updateUser,deleteUser,forgotPassword,resetPassword,getPublicUser} = require('../controllers/userController');
 const { protect, authorize } = require('../middleware/auth');
 
 const router = express.Router();
@@ -15,6 +15,9 @@ router.put('/updatepassword', protect, updatePassword);
 
 router.post('/forgotpassword', forgotPassword);
 router.put('/resetpassword/:token', resetPassword);
+
+// New public route for getting user by ID
+router.get('/public/:id', getPublicUser);
 
 // Admin routes
 router.use(protect, authorize('admin'));
