@@ -27,15 +27,15 @@ const createUserHelper = async (userData) => {
   return user;
 };
 
-// @desc    Register user
-// @access  Public
+//   Register user
+
 exports.register = asyncHandler(async (req, res, next) => {
   const user = await createUserHelper(req.body);
   sendTokenResponse(user, 200, res);
 });
 
-// @desc    Login user
-// @access  Public
+//     Login user
+//   Public
 exports.login = asyncHandler(async (req, res, next) => {
   const { email, password } = req.body;
 
@@ -58,8 +58,8 @@ exports.login = asyncHandler(async (req, res, next) => {
   sendTokenResponse(user, 200, res);
 });
 
-// @desc    Get current logged in user
-// @access  Private
+//    Get current logged in user
+//  Private
 exports.getMe = asyncHandler(async (req, res, next) => {
   const user = await User.findById(req.user.id);
 
@@ -69,8 +69,8 @@ exports.getMe = asyncHandler(async (req, res, next) => {
   });
 });
 
-// @desc    Update user details
-// @access  Private
+//    Update user details
+//   Private
 exports.updateDetails = asyncHandler(async (req, res, next) => {
   const fieldsToUpdate = {
     name: req.body.name,
@@ -90,9 +90,9 @@ exports.updateDetails = asyncHandler(async (req, res, next) => {
   });
 });
 
-// @desc    Update password
-// @route   PUT /api/v1/auth/updatepassword
-// @access  Private
+//     Update password
+//    PUT /api/v1/auth/updatepassword
+
 exports.updatePassword = asyncHandler(async (req, res, next) => {
   const user = await User.findById(req.user.id).select('+password');
 
@@ -106,9 +106,9 @@ exports.updatePassword = asyncHandler(async (req, res, next) => {
   sendTokenResponse(user, 200, res);
 });
 
-// @desc    Get all users (Admin only)
-// @route   GET /api/v1/users
-// @access  Private/Admin
+//   Get all users (Admin only)
+//   GET /api/v1/users
+//   Private/Admin
 exports.getUsers = asyncHandler(async (req, res, next) => {
   const page = parseInt(req.query.page, 10) || 1;
   const limit = parseInt(req.query.limit, 10) || 10;
@@ -135,9 +135,9 @@ exports.getUsers = asyncHandler(async (req, res, next) => {
   });
 });
 
-// @desc    Get single user (Admin only)
-// @route   GET /api/v1/users/:id
-// @access  Private/Admin
+//    Get single user (Admin only)
+//   GET /api/v1/users/:id
+//   Private/Admin
 exports.getUser = asyncHandler(async (req, res, next) => {
   const user = await User.findById(req.params.id);
 
@@ -147,9 +147,9 @@ exports.getUser = asyncHandler(async (req, res, next) => {
   });
 });
 
-// @desc    Create user (Admin only)
-// @route   POST /api/v1/users
-// @access  Private/Admin
+//    Create user (Admin only)
+//    POST /api/v1/users
+//  Private/Admin
 exports.createUser = asyncHandler(async (req, res, next) => {
   const user = await createUserHelper(req.body);
 
@@ -159,9 +159,9 @@ exports.createUser = asyncHandler(async (req, res, next) => {
   });
 });
 
-// @desc    Update user (Admin only)
-// @route   PUT /api/v1/users/:id
-// @access  Private/Admin
+//     Update user (Admin only)
+//    PUT /api/v1/users/:id
+//  Private/Admin
 exports.updateUser = asyncHandler(async (req, res, next) => {
   // Check if user exists
   const user = await User.findById(req.params.id);
@@ -169,7 +169,7 @@ exports.updateUser = asyncHandler(async (req, res, next) => {
     return next(new ErrorResponse(`User not found with id of ${req.params.id}`, 404));
   }
 
-  // Prepare update data
+  
   let updateData = { ...req.body };
 
   // Hash password if provided
@@ -190,9 +190,9 @@ exports.updateUser = asyncHandler(async (req, res, next) => {
   });
 });
 
-// @desc    Delete user (Admin only)
-// @route   DELETE /api/v1/users/:id
-// @access  Private/Admin
+//    Delete user (Admin only)
+//    DELETE /api/v1/users/:id
+//  Private/Admin
 exports.deleteUser = asyncHandler(async (req, res, next) => {
   await User.findByIdAndDelete(req.params.id);
 
@@ -229,9 +229,9 @@ const sendTokenResponse = (user, statusCode, res) => {
 };
 
 
-// @desc    Forgot Password (Send Reset Email)
-// @route   POST /api/v1/users/forgotpassword
-// @access  Public
+//    Forgot Password (Send Reset Email)
+//    POST /api/v1/users/forgotpassword
+//  Public
 exports.forgotPassword = asyncHandler(async (req, res, next) => {
   const user = await User.findOne({ email: req.body.email });
   if (!user) {
@@ -262,9 +262,37 @@ exports.forgotPassword = asyncHandler(async (req, res, next) => {
   }
 });
 
-// @desc    Reset Password
-// @route   PUT /api/v1/users/resetpassword/:token
-// @access  Public
+
+//    Get single user by ID (Public)
+//    GET /api/v1/users/public/:id
+//   Public
+exports.getPublicUser = asyncHandler(async (req, res, next) => {
+  // Validate ObjectId
+  if (!req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
+    return next(new ErrorResponse('Invalid user ID', 400));
+  }
+
+  const user = await User.findById(req.params.id).select('_id name email role');
+
+  if (!user) {
+    return next(new ErrorResponse(`User not found with id of ${req.params.id}`, 404));
+  }
+
+  res.status(200).json({
+    success: true,
+    data: {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role
+    }
+  });
+});
+
+
+//    Reset Password
+//   PUT /api/v1/users/resetpassword/:token
+//  Public
 exports.resetPassword = asyncHandler(async (req, res, next) => {
   const hashedToken = crypto
     .createHash('sha256')
